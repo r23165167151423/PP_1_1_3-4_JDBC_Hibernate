@@ -11,7 +11,7 @@ public class Util {
     private static final String USER = "";
     private static final String PASSWORD = "";
 
-    //Я удалил строчки
+    //Не нашёл, какое обращение к БД для проверки ставить
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
