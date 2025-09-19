@@ -28,5 +28,4 @@ public class Main {
 
         userDao.dropUsersTable();
     }
-    //ПАРОЛЬ УДАЛИТЬ!!!
 }
