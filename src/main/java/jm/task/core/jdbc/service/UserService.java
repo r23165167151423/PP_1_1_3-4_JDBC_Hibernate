@@ -1,10 +1,9 @@
 package jm.task.core.jdbc.service;
 
 import jm.task.core.jdbc.model.User;
-
 import java.util.List;
 
-public interface UserService {
+public interface UserService extends AutoCloseable {
     void createUsersTable();
 
     void dropUsersTable();
@@ -16,4 +15,9 @@ public interface UserService {
     List<User> getAllUsers();
 
     void cleanUsersTable();
+
+    @Override
+    default void close() throws Exception {
+
+    }
 }

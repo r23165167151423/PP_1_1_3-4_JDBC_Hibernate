@@ -1,15 +1,28 @@
 package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import jm.task.core.jdbc.util.Util;
-
 
 public class UserDaoJDBCImpl implements UserDao {
-    public UserDaoJDBCImpl() {
+
+    private final Connection connection;
+
+    public UserDaoJDBCImpl(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void close() throws SQLException {
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
     }
 
     private static final String CREATE_TABLE_SQL = """
@@ -30,55 +43,41 @@ public class UserDaoJDBCImpl implements UserDao {
 
 
     @Override
-    public void createUsersTable() {
-        try (Connection conn = Util.getConnection();
-             Statement stmt = conn.createStatement()) {
+    public void createUsersTable() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(CREATE_TABLE_SQL);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void dropUsersTable() {
-        try (Connection conn = Util.getConnection();
-             Statement stmt = conn.createStatement()) {
+    public void dropUsersTable() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(DROP_TABLE_SQL);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void saveUser(String name, String lastName, byte age) {
-        try (Connection conn = Util.getConnection();
-             PreparedStatement ps = conn.prepareStatement(INSERT_USER_SQL)) {
+    public void saveUser(String name, String lastName, byte age) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(INSERT_USER_SQL)) {
             ps.setString(1, name);
             ps.setString(2, lastName);
             ps.setByte(3, age);
             ps.executeUpdate();
-            System.out.printf("User с именем %s добавлен в базу%n", name);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public void removeUserById(long id) {
-        try (Connection conn = Util.getConnection();
-             PreparedStatement ps = conn.prepareStatement(DELETE_USER_SQL)) {
+    public void removeUserById(long id) throws SQLException {
+        try (PreparedStatement ps = connection.prepareStatement(DELETE_USER_SQL)) {
             ps.setLong(1, id);
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers() throws SQLException {
         List<User> users = new ArrayList<>();
-        try (Connection conn = Util.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(SELECT_ALL_SQL)) {
             while (rs.next()) {
                 User user = new User(
@@ -89,19 +88,14 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setId(rs.getLong("id"));
                 users.add(user);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return users;
     }
 
     @Override
-    public void cleanUsersTable() {
-        try (Connection conn = Util.getConnection();
-             Statement stmt = conn.createStatement()) {
+    public void cleanUsersTable() throws SQLException {
+        try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(CLEAN_TABLE_SQL);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }
