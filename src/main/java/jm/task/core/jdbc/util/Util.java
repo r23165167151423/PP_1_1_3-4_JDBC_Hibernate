@@ -11,18 +11,31 @@ public class Util {
     private static final String USER = "root";
     private static final String PASSWORD = "236Sfafa!!";
 
-    private Util() {}
+    private static Connection connection;
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+    private Util() {
     }
 
-    public static void close(Connection connection) {
+
+    public static Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return connection;
+    }
+
+    public static void closeConnection() {
         if (connection != null) {
             try {
                 connection.close();
-            } catch (SQLException ignored) {}
+                System.out.println("Соединение закрыто.");
+            } catch (SQLException e) {
+                throw new RuntimeException("Не удалось закрыть соединение", e);
+            }
         }
     }
-
 }

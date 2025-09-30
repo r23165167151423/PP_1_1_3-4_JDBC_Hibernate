@@ -4,107 +4,55 @@ import jm.task.core.jdbc.dao.UserDaoJDBCImpl;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class UserServiceImpl implements UserService {
 
     private final UserDaoJDBCImpl userDao;
-    private final Connection connection;
 
     public UserServiceImpl() {
-        Connection conn = null;
-        UserDaoJDBCImpl dao = null;
-        try {
-            conn = Util.getConnection();
-            dao = new UserDaoJDBCImpl(conn);
-        } catch (SQLException e) {
-            System.err.println("Ошибка при создании подключения или DAO: " + e.getMessage());
-        }
-        this.connection = conn;
-        this.userDao = dao;
+        this.userDao = new UserDaoJDBCImpl();
     }
 
-    private void executeInTransaction(TransactionalOperation op, String successMessage) {
-        if (connection == null) return;
-        try {
-            connection.setAutoCommit(false);
-            op.run();
-            connection.commit();
-            if (successMessage != null) System.out.println(successMessage);
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                System.err.println("Откат транзакции: " + e.getMessage());
-            } catch (SQLException ex) {
-                System.err.println("Ошибка при откате: " + ex.getMessage());
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                System.err.println("Ошибка при восстановлении авто-коммита: " + e.getMessage());
-            }
-        }
-    }
-
-    @FunctionalInterface
-    private interface TransactionalOperation {
-        void run() throws SQLException;
-    }
-
+    @Override
     public void createUsersTable() {
-        try {
-            userDao.createUsersTable();
-        } catch (SQLException e) {
-            System.err.println("Ошибка при создании таблицы: " + e.getMessage());
-        }
+        userDao.createUsersTable();
+        System.out.println("Сервис: таблица пользователей создана.");
     }
 
+    @Override
     public void dropUsersTable() {
-        try {
-            userDao.dropUsersTable();
-        } catch (SQLException e) {
-            System.err.println("Ошибка при удалении таблицы: " + e.getMessage());
-        }
+        userDao.dropUsersTable();
+        System.out.println("Таблица пользователей удалена.");
     }
 
+    @Override
     public List<User> getAllUsers() {
-        try {
-            return userDao.getAllUsers();
-        } catch (SQLException e) {
-            System.err.println("Ошибка при получении пользователей: " + e.getMessage());
-            return List.of();
-        }
+        List<User> users = userDao.getAllUsers();
+        System.out.println("Получено " + users.size() + " пользователей.");
+        return users;
     }
 
+    @Override
     public void saveUser(String name, String lastName, byte age) {
-        executeInTransaction(
-                () -> userDao.saveUser(name, lastName, age),
-                "Пользователь сохранён: " + name + " " + lastName
-        );
+        userDao.saveUser(name, lastName, age);
+        System.out.println("Пользователь " + name + " сохранён.");
     }
 
+    @Override
     public void removeUserById(long id) {
-        executeInTransaction(
-                () -> userDao.removeUserById(id),
-                "Пользователь с ID " + id + " удалён."
-        );
+        userDao.removeUserById(id);
+        System.out.println("Пользователь с id " + id + " удалён.");
     }
 
+    @Override
     public void cleanUsersTable() {
-        executeInTransaction(
-                userDao::cleanUsersTable,
-                "Таблица пользователей очищена."
-        );
+        userDao.cleanUsersTable();
+        System.out.println("Таблица пользователей очищена.");
     }
 
+    @Override
     public void close() {
-        try {
-            if (userDao != null) userDao.close();
-        } catch (SQLException e) {
-            System.err.println("Ошибка при закрытии соединения: " + e.getMessage());
-        }
+        Util.closeConnection();
     }
 }

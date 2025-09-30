@@ -21,10 +21,7 @@ public class Main {
             userService.cleanUsersTable();
             userService.dropUsersTable();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.err.println("Произошла ошибка при работе с сервисом: " + e.getMessage());
         }
     }
 }
-
-
-
