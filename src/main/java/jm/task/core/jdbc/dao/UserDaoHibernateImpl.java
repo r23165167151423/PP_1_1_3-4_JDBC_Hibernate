@@ -24,7 +24,6 @@ public class UserDaoHibernateImpl implements UserDao {
             """).executeUpdate();
             tx.commit();
         } catch (org.hibernate.HibernateException e) {
-            if (tx != null && tx.isActive()) tx.rollback();
             System.err.println("Ошибка при создании таблицы: " + e.getMessage());
         }
     }
@@ -37,7 +36,6 @@ public class UserDaoHibernateImpl implements UserDao {
             session.createNativeQuery("DROP TABLE IF EXISTS users").executeUpdate();
             tx.commit();
         } catch (HibernateException e) {
-            if (tx != null && tx.isActive()) tx.rollback();
             System.out.println("Ошибка при удалении таблицы пользователей.");
         }
     }
