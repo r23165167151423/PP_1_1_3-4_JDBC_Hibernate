@@ -78,7 +78,6 @@ public class UserDaoHibernateImpl implements UserDao {
             tx.commit();
             return users;
         } catch (HibernateException e) {
-            if (tx != null && tx.isActive()) tx.rollback();
             System.out.println("Ошибка при получении списка всех пользователей.");
             return List.of();
         }
